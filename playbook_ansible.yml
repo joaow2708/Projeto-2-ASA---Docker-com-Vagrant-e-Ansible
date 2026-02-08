@@ -62,6 +62,13 @@
         group: vagrant
         mode: '0755'
 
+    - name: Adicionar usuário vagrant ao grupo docker
+      user:
+        name: vagrant
+        groups: docker
+        append: yes
+
+
     - name: Copiar arquivo docker-compose.yml para a VM
       copy:
         src: docker-compose.yml
@@ -70,8 +77,18 @@
         group: vagrant
         mode: '0644'
 
-    # 2.2. Executar o Docker-compose para inicializar a aplicação [cite: 47]
-    # Isso criará os containers webproxy, webserver e database [cite: 55, 56, 57, 58]
+
+    - name: Copiar diretório nginx para a VM
+      copy:
+        src: nginx/
+        dest: /home/vagrant/projeto/nginx/
+        owner: vagrant
+        group: vagrant
+        mode: '0755'
+
+
+    # 2.2. Executar o Docker-compose para inicializar a aplicação
+    # Isso criará os containers webproxy, webserver e database
     - name: Inicializar containers (Wordpress + Nginx Proxy)
       become_user: vagrant
       shell: docker compose up -d
