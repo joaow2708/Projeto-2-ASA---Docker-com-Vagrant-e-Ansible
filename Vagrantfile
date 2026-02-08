@@ -1,15 +1,15 @@
 # -*- mode: ruby -*-
-#vi: set ft=ruby :
+# vi: set ft=ruby :
 
 Vagrant.configure("2") do |config|
   config.vm.box = "debian/bookworm64"
-  config.ssh.insert.key = false
-  if Vagrant.has_puglin?("vagrant-vnguest")
+  config.ssh.insert_key = false
+  if Vagrant.has_plugin?("vagrant-vbguest")
     config.vbguest.auto_update = false
   end
   config.vm.hostname = "joao.caua"
-  config.vm.network = "private_network" , ip: "192.168.56.151"
-  config.vm.provider = "virtualbox" do |vb|
+  config.vm.network "private_network", ip: "192.168.56.151"
+  config.vm.provider "virtualbox" do |vb|
     vb.memory = "1024"
     vb.gui = false
     vb.name = config.vm.hostname
