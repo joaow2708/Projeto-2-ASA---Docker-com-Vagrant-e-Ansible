@@ -1,0 +1,95 @@
+# Versão do Docker Compose
+version: "3.8"
+
+services:
+  # ===============================
+  # CONTAINER: NGINX (PROXY)
+  # ===============================
+  webproxy:
+    # Constrói a imagem a partir do Dockerfile na pasta nginx
+    build: ./nginx
+
+    # Nome fixo do container
+    container_name: webproxy
+
+    # Expõe apenas a porta 8080 para fora do Docker
+    # Porta exigida no projeto
+    ports:
+      - "8080:8080"
+
+    # Coloca o container na rede wordpress
+    networks:
+      - wordpress
+
+    # Garante que o WordPress suba antes do proxy
+    depends_on:
+      - webserver
+
+  # ===============================
+  # CONTAINER: WORDPRESS
+  # ===============================
+  webserver:
+    # Usa a imagem oficial do WordPress
+    image: wordpress:latest
+
+    container_name: webserver
+
+    # Variáveis de ambiente para conexão com o banco de dados
+    environment:
+      WORDPRESS_DB_HOST: database:3306
+      WORDPRESS_DB_USER: wpuser
+      WORDPRESS_DB_PASSWORD: wppass
+      WORDPRESS_DB_NAME: wpdatabase
+
+    # Volume persistente da aplicação WordPress
+    volumes:
+      - app:/var/www/html
+
+    # Rede compartilhada com os outros containers
+    networks:
+      - wordpress
+
+    # Aguarda o banco subir
+    depends_on:
+      - database
+
+  # ===============================
+  # CONTAINER: MYSQL
+  # ===============================
+  database:
+    # Usa a imagem oficial do MySQL
+    image: mysql:8.0
+
+    container_name: database
+
+    # Variáveis de inicialização do banco
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpass
+      MYSQL_DATABASE: wpdatabase
+      MYSQL_USER: wpuser
+      MYSQL_PASSWORD: wppass
+
+    # Volume persistente do banco de dados
+    volumes:
+      - my:/var/lib/mysql
+
+    # Rede compartilhada
+    networks:
+      - wordpress
+
+# ===============================
+# VOLUMES PERSISTENTES
+# ===============================
+volumes:
+  # Volume da aplicação WordPress
+  app:
+
+  # Volume do banco de dados MySQL
+  my:
+
+# ===============================
+# REDE DOCKER
+# ===============================
+networks:
+  wordpress:
+    driver: bridge
