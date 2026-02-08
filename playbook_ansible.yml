@@ -1,0 +1,22 @@
+- hosts: all
+  become: yes
+  tasks:
+    - [cite_start]name: Atualizar pacotes do sistema [cite: 44]
+      apt:
+        update_cache: yes
+        upgrade: yes
+
+    - [cite_start]name: Instalar Docker e Docker-Compose [cite: 45]
+      apt:
+        name: 
+          - docker.io
+          - docker-compose-v2
+        state: present
+
+    - [cite_start]name: Copiar arquivo docker-compose para a VM [cite: 46]
+      copy:
+        src: ./docker-compose.yml
+        dest: /home/vagrant/docker-compose.yml
+
+    - [cite_start]name: Subir a infraestrutura Docker [cite: 47]
+      shell: docker compose -f /home/vagrant/docker-compose.yml up -d
