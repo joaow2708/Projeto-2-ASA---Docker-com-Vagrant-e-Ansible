@@ -1,22 +1,79 @@
-- hosts: all
-  become: yes
+---
+# Playbook responsável por provisionar a VM Debian Bookworm.
+# Realiza a atualização do SO, instala Docker/Compose e sobe a aplicação.
+- name: Provisionar Infraestrutura - Projeto IFPB
+  hosts: all
+  become: true
+
   tasks:
-    - [cite_start]name: Atualizar pacotes do sistema [cite: 44]
+    # 2.2. Atualizar o sistema operacional (update e upgrade) 
+    - name: Atualizar cache do apt e realizar upgrade do sistema
       apt:
         update_cache: yes
-        upgrade: yes
+        upgrade: dist
+        cache_valid_time: 3600
 
-    - [cite_start]name: Instalar Docker e Docker-Compose [cite: 45]
+    # Instalar dependências necessárias para o repositório Docker
+    - name: Instalar dependências do sistema
       apt:
-        name: 
-          - docker.io
-          - docker-compose-v2
+        name:
+          - ca-certificates
+          - curl
+          - gnupg
+          - lsb-release
         state: present
 
-    - [cite_start]name: Copiar arquivo docker-compose para a VM [cite: 46]
-      copy:
-        src: ./docker-compose.yml
-        dest: /home/vagrant/docker-compose.yml
+    # Adicionar chave GPG oficial do Docker para garantir autenticidade
+    - name: Adicionar chave GPG do Docker
+      apt_key:
+        url: https://download.docker.com/linux/debian/gpg
+        state: present
 
-    - [cite_start]name: Subir a infraestrutura Docker [cite: 47]
-      shell: docker compose -f /home/vagrant/docker-compose.yml up -d
+    # Adicionar repositório oficial para Debian Bookworm (exigência da Box) [cite: 30]
+    - name: Adicionar repositório oficial do Docker
+      apt_repository:
+        repo: "deb [arch=amd64] https://download.docker.com/linux/debian bookworm stable"
+        state: present
+
+    # 2.2. Instalar o Docker e Docker-compose 2 
+    - name: Instalar Docker Engine e Plugin Compose v2
+      apt:
+        name:
+          - docker-ce
+          - docker-ce-cli
+          - containerd.io
+          - docker-buildx-plugin
+          - docker-compose-plugin
+        state: present
+        update_cache: yes
+
+    - name: Garantir que o serviço Docker está rodando
+      service:
+        name: docker
+        state: started
+        enabled: yes
+
+    # 2.2. Inserir o conteúdo do arquivo docker-compose.yml na VM 
+    - name: Criar diretório para o projeto Docker
+      file:
+        path: /home/vagrant/projeto
+        state: directory
+        owner: vagrant
+        group: vagrant
+        mode: '0755'
+
+    - name: Copiar arquivo docker-compose.yml para a VM
+      copy:
+        src: docker-compose.yml
+        dest: /home/vagrant/projeto/docker-compose.yml
+        owner: vagrant
+        group: vagrant
+        mode: '0644'
+
+    # 2.2. Executar o Docker-compose para inicializar a aplicação [cite: 47]
+    # Isso criará os containers webproxy, webserver e database [cite: 55, 56, 57, 58]
+    - name: Inicializar containers (Wordpress + Nginx Proxy)
+      become_user: vagrant
+      shell: docker compose up -d
+      args:
+        chdir: /home/vagrant/projeto
