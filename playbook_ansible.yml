@@ -62,6 +62,7 @@
         group: vagrant
         mode: '0755'
 
+        
     - name: Adicionar usuário vagrant ao grupo docker
       user:
         name: vagrant
