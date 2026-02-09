@@ -12,76 +12,41 @@ Este projeto foca na automação completa da montagem e configuração de um ser
 
 A arquitetura foi desenhada para orquestrar, através de **Docker** e **Docker Compose**, um ecossistema composto por uma aplicação **WordPress** e um banco de dados **MySQL**, protegidos por um proxy **Nginx** que gerencia o fluxo de requisições. Todo o ambiente pode ser replicado ou atualizado com facilidade através deste repositório.
 
-## Vagrantfile:
+### 1. Camada de Virtualização (Vagrant)
+O arquivo `Vagrantfile` define uma máquina virtual robusta:
+* **Box:** `debian/bookworm64`.
+* **Hostname:** `joao.caua`.
+* **Rede:** IP fixo `192.168.56.151` em rede privada.
+* **Hardware:** 1024 MB de RAM rodando em modo *headless*.
+* **Segurança:** Geração de chaves SSH automática desabilitada.
 
-O projeto inclui um Vagrantfile que define a criação de uma máquina virtual:
+### 2. Camada de Configuração (Ansible)
+O `playbook_ansible.yml` automatiza todo o setup do sistema operacional:
+* **Update/Upgrade:** Atualiza o Debian para a versão estável mais recente.
+* **Instalação do Docker:** Configura os repositórios oficiais e instala o Docker Engine e o Plugin Compose v2.
+* **Ambiente de Trabalho:** Cria o diretório `/home/vagrant/projeto`, configura permissões e transfere os arquivos de configuração necessários.
 
-- Provider: VirtualBox;
-- Box: debian/bookworm64;
-- Versão da API do Vagrant: 2;
-- Geração automática de chaves SSH: desabilitada;
-- Plugin vagrant-vbguest: atualização automática desabilitada (quando presente);
-- Tipo de rede: rede privada (private_network);
-- Endereço IP: 192.168.56.163;
-- Hostname: pedro.felipe;
-- Memória RAM: 1024 MB;
-- Interface gráfica (GUI): desabilitada (headless);
-- Nome da máquina virtual no VirtualBox: definido conforme o hostname;
-- Verificação de Guest Additions: desabilitada;
-- Provisionamento automático: realizado com Ansible;
-- Playbook utilizado: playbook_ansible.yml;
-- Modo de compatibilidade do Ansible: 2.0.
+### 3. Camada de Aplicação (Docker & Nginx)
+A stack de serviços é composta por:
+* **WebProxy (Nginx):** Construído via **Dockerfile** personalizado.
+    * Base: `nginx:latest`.
+    * Ferramentas: Instalação de `ping` e `curl` para diagnósticos.
+    * Configuração: Implementa **Load Balance em Camada 4 (TCP)** via módulo `stream`, redirecionando o tráfego da porta **8080** para o WordPress.
+* **WebServer (WordPress):** Imagem oficial configurada com volumes persistentes para os arquivos da aplicação.
+* **Database (MySQL 8.0):** Banco de dados persistente com credenciais seguras definidas via variáveis de ambiente.
 
-## playbook_ansible.yml:
+---
 
-- Atualização da lista de pacotes do sistema;
-- Atualização dos pacotes instalados (upgrade dist);
-- Instalação de dependências básicas para repositórios HTTPS;
-- Adição da chave GPG oficial do Docker;
-- Adição do repositório oficial do Docker para Debian Bookworm;
-- Instalação do Docker Engine e do Docker Compose v2;
-- Inicialização e habilitação do serviço Docker na inicialização do sistema;
-- Adição do usuário vagrant ao grupo docker;
-- Criação do diretório do projeto em /opt/wordpress;
-- Cópia do arquivo docker-compose.yml para a máquina virtual;
-- Inicialização dos contêineres Docker utilizando Docker Compose.
+## 📂 Estrutura de Arquivos
 
-
-## docker-compose.yml: 
-
-- Nome do projeto: projeto-pf;
-- Serviço webproxy:
-     - Imagem Docker personalizada hospedada no Docker Hub;
-     - Exposição da porta 8080;
-     - Dependência do serviço Wordpress;
-- Serviço webserver (WordPress):
-     - Imagem oficial wordpress:latest;
-     - Persistência de dados via volume Docker;
-     - Configuração de variáveis de ambiente para conexão com o banco de dados;
-- Serviço database (MySQL):
-     - Imagem oficial mysql:8.0;
-     - Persistência de dados via volume Docker;
-     - Configuração automática do banco, usuário e credenciais;
-- Utilização de volumes persistentes para dados do Wordpress e do MySQL;
-- Comunicação entre os serviços através de uma rede bridge dedicada.
-
-## Dockerfile:
-
-- Utilização da imagem base nginx:latest;
-- Instalação de ferramentas de diagnóstico de rede (ping e curl);
-- Remoção de arquivos temporários para otimização do tamanho da imagem;
-- Cópia de um arquivo de configuração personalizado do Nginx;
-- Exposição da porta 8080 para acesso externo ao proxy.
-
-## nginx.conf:
-
-- Definição de um único processo de trabalho do Nginx;
-- Configuração de eventos com limite de conexões simultâneas;
-- Utilização do módulo stream para proxy TCP;
-- Definição de um upstream apontando para o serviço Wordpress;
-- Escuta de conexões na porta 8080;
-- Encaminhamento do tráfego recebido para o servidor backend.
-
+```text
+.
+├── Vagrantfile               # Definição da VM Debian
+├── playbook_ansible.yml      # Automação da instalação do Docker e Deploy
+├── docker-compose.yml        # Orquestração dos containers
+└── nginx/
+    ├── Dockerfile            # Customização da imagem Nginx
+    └── nginx.conf            # Configuração de Proxy Reverso (Layer 4
 
 ## Execução do Projeto:
 
