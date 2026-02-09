@@ -10,7 +10,7 @@
     - name: Atualizar cache do apt e realizar upgrade do sistema
       apt:
         update_cache: yes
-        upgrade: dist
+        #upgrade: dist
         cache_valid_time: 3600
 
     # Instalar dependências necessárias para o repositório Docker
