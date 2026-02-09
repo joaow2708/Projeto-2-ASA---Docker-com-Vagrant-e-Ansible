@@ -83,9 +83,13 @@ services:
 volumes:
   # Volume da aplicação WordPress
   app:
+    driver: local
+    name: wp_data  # Nome opcional para o volume no sistema
 
   # Volume do banco de dados MySQL
   my:
+    driver: local
+    name: db_data
 
 # ===============================
 # REDE DOCKER
