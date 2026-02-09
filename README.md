@@ -68,7 +68,7 @@ Antes de começar, certifique-se de possuir instalado:
 
 1. **Clonagem do Repositório**:
    ```bash
-   git clone [https://github.com/joaow2708/Projeto-2-ASA---Docker-com-Vagrant-e-Ansible.git](https://github.com/joaow2708/Projeto-2-ASA---Docker-com-Vagrant-e-Ansible.git)
+   git clone https://github.com/joaow2708/Projeto-2-ASA---Docker-com-Vagrant-e-Ansible.git
    cd Projeto-2-ASA---Docker-com-Vagrant-e-Ansible
 
 
