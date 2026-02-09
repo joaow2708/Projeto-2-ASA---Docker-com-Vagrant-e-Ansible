@@ -29,7 +29,7 @@
         url: https://download.docker.com/linux/debian/gpg
         state: present
 
-    # Adicionar repositório oficial para Debian Bookworm (exigência da Box) [cite: 30]
+    # Adicionar repositório oficial para Debian Bookworm (exigência da Box)
     - name: Adicionar repositório oficial do Docker
       apt_repository:
         repo: "deb [arch=amd64] https://download.docker.com/linux/debian bookworm stable"
