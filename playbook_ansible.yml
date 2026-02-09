@@ -95,3 +95,4 @@
       shell: docker compose up -d
       args:
         chdir: /home/vagrant/projeto
+      become: true
