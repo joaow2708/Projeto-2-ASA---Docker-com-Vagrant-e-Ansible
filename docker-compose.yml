@@ -13,7 +13,6 @@ services:
     container_name: webproxy
 
     # Expõe apenas a porta 8080 para fora do Docker
-    # Porta exigida no projeto
     ports:
       - "8080:8080"
 
